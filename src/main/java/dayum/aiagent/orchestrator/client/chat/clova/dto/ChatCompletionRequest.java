@@ -28,8 +28,8 @@ public sealed interface ChatCompletionRequest
 
   static ChatCompletionRequest of(ModelType type, String systemMessage, String userMessage) {
     return switch (type) {
-      case HCX_005 -> ChatCompletionHcx005Request.of(systemMessage, userMessage);
-      case HCX_007 -> ChatCompletionHcx007Request.of(systemMessage, userMessage);
+      case CLAUDE_HAIKU -> ChatCompletionHcx005Request.of(systemMessage, userMessage);
+      case CLAUDE_SONNET -> ChatCompletionHcx007Request.of(systemMessage, userMessage);
     };
   }
 
@@ -39,16 +39,17 @@ public sealed interface ChatCompletionRequest
       String userMessage,
       SchemaFactory.JsonSchema responseSchema) {
     return switch (type) {
-      case HCX_005 -> throw new RuntimeException();
-      case HCX_007 -> ChatCompletionHcx007Request.of(systemMessage, userMessage, responseSchema);
+      case CLAUDE_HAIKU -> throw new RuntimeException();
+      case CLAUDE_SONNET ->
+          ChatCompletionHcx007Request.of(systemMessage, userMessage, responseSchema);
     };
   }
 
   static ChatCompletionRequest ofImage(
       ModelType type, String systemMessage, String userMessage, String imageUrl) {
     return switch (type) {
-      case HCX_005 -> ChatCompletionHcx005Request.ofImage(systemMessage, userMessage, imageUrl);
-      case HCX_007 -> throw new RuntimeException();
+      case CLAUDE_HAIKU -> ChatCompletionHcx005Request.ofImage(systemMessage, userMessage, imageUrl);
+      case CLAUDE_SONNET -> throw new RuntimeException();
     };
   }
 }

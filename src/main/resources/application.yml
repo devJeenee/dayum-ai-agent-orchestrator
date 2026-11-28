@@ -29,6 +29,16 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         default_batch_fetch_size: 1000
 
+chat:
+  provider: ${CHAT_PROVIDER:anthropic}
+
+anthropic:
+  base-url: ${ANTHROPIC_BASE_URL:https://copa.codyssey.kr}
+  api-key: ${ANTHROPIC_API_KEY}
+  version: ${ANTHROPIC_VERSION:2023-06-01}
+  max-tokens: ${ANTHROPIC_MAX_TOKENS:4096}
+  temperature: ${ANTHROPIC_TEMPERATURE:0.5}
+
 ncp:
   access-key: ${ncp.access-key}
   secret-key: ${ncp.secret-key}

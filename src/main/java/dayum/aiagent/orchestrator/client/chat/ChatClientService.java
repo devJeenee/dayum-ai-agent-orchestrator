@@ -68,7 +68,7 @@ public class ChatClientService {
               ChatPrompt.PlannerPrompt.SYSTEM_MESSAGE,
               userMessagePrompt,
               JsonSchemaGenerator.generate(PlanningPlaybookResponse.class),
-              ModelType.HCX_007);
+              ModelType.CLAUDE_SONNET);
       return objectMapper.readValue(response.message(), PlanningPlaybookResponse.class);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -92,7 +92,7 @@ public class ChatClientService {
                   });
       ChatCompletionResponse response =
           chatClient.chatCompletion(
-              ChatPrompt.RollingSummaryPrompt.SYSTEM_MESSAGE, userMessagePrompt, ModelType.HCX_005);
+              ChatPrompt.RollingSummaryPrompt.SYSTEM_MESSAGE, userMessagePrompt, ModelType.CLAUDE_HAIKU);
       if ("stop".equals(response.finishReason())) {
         return response.message();
       }
@@ -129,7 +129,7 @@ public class ChatClientService {
               userMessagePrompt,
               context,
               JsonSchemaGenerator.generate(GeneratedRecipesResponse.class),
-              ModelType.HCX_007);
+              ModelType.CLAUDE_SONNET);
       return objectMapper.readValue(response.message(), GeneratedRecipesResponse.class);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -151,7 +151,7 @@ public class ChatClientService {
                     }
                   });
       ChatCompletionResponse response =
-          chatClient.chatCompletion(systemMessage, userMessagePrompt, context, ModelType.HCX_005);
+          chatClient.chatCompletion(systemMessage, userMessagePrompt, context, ModelType.CLAUDE_HAIKU);
       return response.message();
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -175,7 +175,7 @@ public class ChatClientService {
           chatClient.chatCompletion(
               ChatPrompt.ExtractIngredientPrompt.SYSTEM_MESSAGE_FOR_TEXT,
               userMessagePrompt,
-              ModelType.HCX_005);
+              ModelType.CLAUDE_HAIKU);
       return objectMapper.readValue(response.message(), ExtractIngredientsResponse.class);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -199,7 +199,7 @@ public class ChatClientService {
               ChatPrompt.ExtractIngredientPrompt.SYSTEM_MESSAGE_FOR_IMAGE,
               userMessagePrompt,
               imageUrl,
-              ModelType.HCX_005);
+              ModelType.CLAUDE_HAIKU);
       return objectMapper.readValue(response.message(), ExtractIngredientsResponse.class);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
@@ -221,7 +221,7 @@ public class ChatClientService {
                   });
 
       ChatCompletionResponse response =
-          chatClient.chatCompletion(userMessagePrompt, message, ModelType.HCX_005);
+          chatClient.chatCompletion(userMessagePrompt, message, ModelType.CLAUDE_HAIKU);
       return objectMapper.readValue(response.message(), ExtractAttributeResponse.class);
     } catch (Exception e) {
       log.error("취향 추출 중 에러 발생: {}", e.getMessage(), e);
@@ -246,7 +246,7 @@ public class ChatClientService {
           chatClient.chatCompletion(
               ChatPrompt.PlanningHowToRecommendPrompt.SYSTEM_MESSAGE,
               userMessagePrompt,
-              ModelType.HCX_007);
+              ModelType.CLAUDE_SONNET);
       return objectMapper.readValue(response.message(), PlanningHowToRecommendResponse.class);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -274,7 +274,7 @@ public class ChatClientService {
               ChatPrompt.SelectRecipePrompt.SYSTEM_MESSAGE,
               userMessagePrompt,
               JsonSchemaGenerator.generate(SelectRecipeResponse.class),
-              ModelType.HCX_007);
+              ModelType.CLAUDE_SONNET);
 
       SelectRecipeResponse selectResponse =
           objectMapper.readValue(response.message(), SelectRecipeResponse.class);
@@ -324,7 +324,7 @@ public class ChatClientService {
               ChatPrompt.GenerateDetailedRecipePrompt.SYSTEM_MESSAGE,
               userMessagePrompt,
               context,
-              ModelType.HCX_007);
+              ModelType.CLAUDE_SONNET);
 
       return response.message();
 

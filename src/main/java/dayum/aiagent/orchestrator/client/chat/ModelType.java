@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ModelType {
-  HCX_005("HCX-005"),
-  HCX_007("HCX-007");
+  CLAUDE_SONNET("claude-sonnet-4"),
+  CLAUDE_HAIKU("claude-haiku-4");
 
   private final String name;
 }

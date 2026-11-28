@@ -16,13 +16,22 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "chat.provider", havingValue = "clova")
 public class ClovaStudioChatClient implements ChatClient {
+
+  private static String clovaModelName(ModelType modelType) {
+    return switch (modelType) {
+      case CLAUDE_SONNET -> "HCX-007";
+      case CLAUDE_HAIKU -> "HCX-005";
+    };
+  }
 
   private final Handlebars handlebars = new Handlebars();
 
@@ -140,7 +149,7 @@ public class ClovaStudioChatClient implements ChatClient {
             () ->
                 restClient
                     .post()
-                    .uri(properties.getUrl() + "/" + modelType.getName())
+                    .uri(properties.getUrl() + "/" + clovaModelName(modelType))
                     .header("Authorization", "Bearer " + properties.getApiKey())
                     .header("X-NCP-CLOVASTUDIO-REQUEST-ID", UUID.randomUUID().toString())
                     .body(request)
