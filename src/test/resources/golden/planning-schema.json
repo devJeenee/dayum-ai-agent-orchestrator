@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "playbookId": { "type": "string" },
+          "reason": { "type": "string" },
+          "priority": { "type": "integer" }
+        },
+        "required": ["priority"]
+      }
+    }
+  }
+}
