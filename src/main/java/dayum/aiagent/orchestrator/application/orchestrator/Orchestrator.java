@@ -3,8 +3,10 @@ package dayum.aiagent.orchestrator.application.orchestrator;
 import dayum.aiagent.orchestrator.application.context.model.ContextType;
 import dayum.aiagent.orchestrator.application.context.model.ContextValue;
 import dayum.aiagent.orchestrator.application.context.model.ConversationContext;
+import dayum.aiagent.orchestrator.application.orchestrator.model.FailedStep;
 import dayum.aiagent.orchestrator.application.orchestrator.model.PlaybookPlanResult;
 import dayum.aiagent.orchestrator.application.orchestrator.model.PlaybookResult;
+import dayum.aiagent.orchestrator.application.orchestrator.model.ReplanReason;
 import dayum.aiagent.orchestrator.application.orchestrator.playbook.PlaybookType;
 import dayum.aiagent.orchestrator.common.vo.UserMessage;
 import java.util.ArrayList;
@@ -20,38 +22,48 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class Orchestrator {
 
+  static final int MAX_REPLAN = 2;
+
   private final PlaybookPlanner planner;
 
   public List<PlaybookResult> runTurn(ConversationContext context, UserMessage userMessage) {
-    List<PlaybookPlanResult> plans = planner.planning(context, userMessage);
-    log.info("✅✅✅✅ Playbook plans : {}", plans);
     List<PlaybookResult> results = new ArrayList<>();
+    List<PlaybookPlanResult> plans = planner.planning(context, userMessage);
+    log.info("✅ Initial plans: {}", plans);
 
-    for (PlaybookPlanResult plan : plans) {
-      // 1. Playbook이 요구하는 컨텍스트 가져오기
-      List<ContextType> requiredContexts = plan.playbook().getRequiresContext();
-
-      // 2. 필수 컨텍스트 검사
-      List<ContextType> missingContexts = findMissingContexts(requiredContexts, context.contexts());
-
-      // 필수 컨텍스트가 없는 경우
-      if (!missingContexts.isEmpty()) {
-        PlaybookResult errorResult =
-            createMissingContextResult(plan.playbook().getType(), missingContexts);
-        results.add(errorResult);
-        break;
+    int replanCount = 0;
+    while (true) {
+      FailedStep failure = executePlans(plans, context, userMessage, results);
+      if (failure == null) {
+        return results;
       }
+      if (replanCount >= MAX_REPLAN) {
+        results.add(createMissingContextResult(failure.playbookType(), failure.missingContexts()));
+        return results;
+      }
+      replanCount++;
+      plans = planner.replan(context, userMessage, failure);
+      log.info("♻️ Replan #{} (failed={}): {}", replanCount, failure, plans);
+    }
+  }
 
-      // 3. Playbook 실행
+  /** Executes plans until completion or the first missing-context failure. */
+  private FailedStep executePlans(
+      List<PlaybookPlanResult> plans,
+      ConversationContext context,
+      UserMessage userMessage,
+      List<PlaybookResult> results) {
+    for (PlaybookPlanResult plan : plans) {
+      List<ContextType> missing =
+          findMissingContexts(plan.playbook().getRequiresContext(), context.contexts());
+      if (!missing.isEmpty()) {
+        return new FailedStep(plan.playbook().getType(), ReplanReason.MISSING_CONTEXT, missing);
+      }
       PlaybookResult result = plan.playbook().play(plan.reason(), context, userMessage);
       results.add(result);
-
-      // 4. 결과의 output을 원본 context에 upsert
       context.merge(result.output());
     }
-
-    // TODO : Validator 거쳐서 최종 응답 반환
-    return results;
+    return null;
   }
 
   /** 현재 컨텍스트에 없는 필수 컨텍스트 찾기 */

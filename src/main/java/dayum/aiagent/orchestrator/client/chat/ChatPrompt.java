@@ -116,6 +116,36 @@ public class ChatPrompt {
         [PLAYBOOK_CATALOG]
         {{playbookCatalog}}
         """;
+
+    public static final String USER_MESSAGE_TEMPLATE_REPLAN =
+        """
+        [USER_MESSAGE]
+        {{userMessage}}
+
+        [CURRENT_CONTEXT_KEY]
+        {{currentContextKey}}
+
+        [PLAYBOOK_LIST]
+        {{playbookList}}
+
+        [PLAYBOOK_CATALOG]
+        {{playbookCatalog}}
+
+        [REPLAN]
+        직전 계획의 "{{failedPlaybook}}" 스텝이 필수 컨텍스트({{missingContexts}}) 부족으로 실패했습니다.
+        사유: {{failedReason}}.
+        아래 지침에 따라 새 계획을 수립하세요.
+        - 실패한 플레이북과 동일한 계획을 반복하지 말 것.
+        - 누락된 컨텍스트를 선행 스텝으로 보강(예: PANTRY 부족 시 REMEMBER_INGREDIENT 선행) 하거나,
+          불가하면 SHOW_CONTEXT 로 사용자에게 필요한 정보를 요청하거나, GUARDRAIL 로 종료.
+
+        [REPLAN 예시]
+        - 실패: RECOMMEND_DIET_RECIPE, 누락: ["PANTRY"], 메시지에 재료가 있음
+          → [{"playbook_id":"REMEMBER_INGREDIENT","reason":"재료 선 저장","priority":1},
+             {"playbook_id":"RECOMMEND_DIET_RECIPE","reason":"보강 후 추천","priority":2}]
+        - 실패: RECOMMEND_DIET_RECIPE, 누락: ["PANTRY"], 메시지에 재료 없음
+          → [{"playbook_id":"SHOW_CONTEXT","reason":"PANTRY 부재 안내","priority":1}]
+        """;
   }
 
   public static class GenerateRecipeSuggestionsPrompt {

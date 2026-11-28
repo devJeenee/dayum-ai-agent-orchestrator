@@ -6,6 +6,7 @@ import com.github.jknack.handlebars.Handlebars;
 import dayum.aiagent.orchestrator.application.context.model.ContextType;
 import dayum.aiagent.orchestrator.application.context.model.ConversationContext;
 import dayum.aiagent.orchestrator.application.context.model.RecommendedRecipeContext;
+import dayum.aiagent.orchestrator.application.orchestrator.model.FailedStep;
 import dayum.aiagent.orchestrator.application.orchestrator.model.PlaybookCatalog;
 import dayum.aiagent.orchestrator.application.orchestrator.playbook.PlaybookType;
 import dayum.aiagent.orchestrator.client.chat.dto.ChatCompletionResponse;
@@ -42,10 +43,22 @@ public class ChatClientService {
       ConversationContext context,
       UserMessage userMessage,
       Map<PlaybookType, PlaybookCatalog> catalogs) {
+    return planningSteps(context, userMessage, catalogs, null);
+  }
+
+  public PlanningPlaybookResponse planningSteps(
+      ConversationContext context,
+      UserMessage userMessage,
+      Map<PlaybookType, PlaybookCatalog> catalogs,
+      FailedStep failedStep) {
     try {
+      String template =
+          failedStep == null
+              ? ChatPrompt.PlannerPrompt.USER_MESSAGE_TEMPLATE
+              : ChatPrompt.PlannerPrompt.USER_MESSAGE_TEMPLATE_REPLAN;
       String userMessagePrompt =
           handlebars
-              .compileInline(ChatPrompt.PlannerPrompt.USER_MESSAGE_TEMPLATE)
+              .compileInline(template)
               .apply(
                   new HashMap<String, Object>() {
                     {
@@ -61,6 +74,18 @@ public class ChatClientService {
                           "currentContextKey",
                           new Handlebars.SafeString(
                               objectMapper.writeValueAsString(context.contexts().keySet())));
+                      if (failedStep != null) {
+                        this.put("failedPlaybook", failedStep.playbookType().name());
+                        this.put("failedReason", failedStep.reason().name());
+                        try {
+                          this.put(
+                              "missingContexts",
+                              new Handlebars.SafeString(
+                                  objectMapper.writeValueAsString(failedStep.missingContexts())));
+                        } catch (Exception e) {
+                          this.put("missingContexts", failedStep.missingContexts().toString());
+                        }
+                      }
                     }
                   });
       ChatCompletionResponse response =

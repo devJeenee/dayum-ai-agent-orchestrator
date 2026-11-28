@@ -1,6 +1,7 @@
 package dayum.aiagent.orchestrator.application.orchestrator;
 
 import dayum.aiagent.orchestrator.application.context.model.ConversationContext;
+import dayum.aiagent.orchestrator.application.orchestrator.model.FailedStep;
 import dayum.aiagent.orchestrator.application.orchestrator.model.PlaybookPlanResult;
 import dayum.aiagent.orchestrator.application.orchestrator.playbook.Playbook;
 import dayum.aiagent.orchestrator.application.orchestrator.playbook.PlaybookType;
@@ -28,11 +29,21 @@ public class PlaybookPlanner {
             build(PlaybookType.RECOMMEND_DIET_RECIPE, "새로운 레시피 생성을 요청");
       };
     }
+    return planFromModel(context, userMessage, null);
+  }
 
+  public List<PlaybookPlanResult> replan(
+      ConversationContext context, UserMessage userMessage, FailedStep failedStep) {
+    return planFromModel(context, userMessage, failedStep);
+  }
+
+  private List<PlaybookPlanResult> planFromModel(
+      ConversationContext context, UserMessage userMessage, FailedStep failedStep) {
     var catalogMap =
         playbooks.stream().collect(Collectors.toMap(Playbook::getType, Playbook::getCatalog));
     List<PlanningPlaybookResponse.Step> steps =
-        chatClientService.planningSteps(context, userMessage, catalogMap).steps().stream()
+        chatClientService.planningSteps(context, userMessage, catalogMap, failedStep).steps()
+            .stream()
             .sorted(Comparator.comparingInt(PlanningPlaybookResponse.Step::priority))
             .toList();
     return switch (steps.size()) {
